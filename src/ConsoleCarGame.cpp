@@ -10,8 +10,10 @@
 #include <Windows.h>
 #include <time.h>
 
+// Screen defines the whole area
 #define SCREEN_WIDTH 90
 #define SCREEN_HEIGHT 26
+// Win describes only the playable area
 #define WIN_WIDTH 70
 
 using namespace std;
@@ -19,15 +21,23 @@ using namespace std;
 HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 COORD CursorPosition;
 
-int enemyY[3];
-int enemyX[3];
-bool enemyFlag[3];
+struct Enemy
+{
+    int lane;
+    int y;
+    bool flag;
+};
+Enemy enemy[2];
+
 char car[4][4] = { ' ', '[', ']', ' ',
                    '@', '[', ']', '@',
                    ' ', '[', ']', ' ',
                    '@', '[', ']', '@' };
 
-int carPos = WIN_WIDTH / 2;
+int maxLane = 8;
+int laneX[9] = { 17, 21, 25, 29, 33, 37, 41, 45, 49 };
+
+int carLane = 5;
 int score = 0;
 int speed = 50;
 
@@ -57,47 +67,44 @@ void drawBorder()
         for (int j = 0; j < 17; j++)
         {
             gotoxy(0 + j, i); cout << "&";
-            gotoxy(WIN_WIDTH - j, i); cout << "&";
+            gotoxy(WIN_WIDTH - j - 1, i); cout << "&";
         }
-    }
-    for (int i = 0; i < SCREEN_HEIGHT; i++)
-    {
-        gotoxy(SCREEN_WIDTH, i); cout << "=";
+        gotoxy(SCREEN_WIDTH, i); cout << "&&";
     }
 }
 
 // Enemy Cars
 void genEnemy(int ind)
 {
-    enemyX[ind] = 17 + rand() % (33);
+    enemy[ind].lane = rand() % 9;
 }
 
 void drawEnemy(int ind)
 {
-    if (enemyFlag[ind])
+    if (enemy[ind].flag)
     {
-        gotoxy(enemyX[ind], enemyY[ind]);     cout << "****";
-        gotoxy(enemyX[ind], enemyY[ind] + 1); cout << " ** ";
-        gotoxy(enemyX[ind], enemyY[ind] + 2); cout << "****";
-        gotoxy(enemyX[ind], enemyY[ind] + 3); cout << " ** ";
+        gotoxy(laneX[enemy[ind].lane], enemy[ind].y);     cout << "****";
+        gotoxy(laneX[enemy[ind].lane], enemy[ind].y + 1); cout << " ** ";
+        gotoxy(laneX[enemy[ind].lane], enemy[ind].y + 2); cout << "****";
+        gotoxy(laneX[enemy[ind].lane], enemy[ind].y + 3); cout << " ** ";
     }
 }
 
 void eraseEnemy(int ind)
 {
-    if (enemyFlag[ind])
+    if (enemy[ind].flag)
     {
-        gotoxy(enemyX[ind], enemyY[ind]);     cout << "    ";
-        gotoxy(enemyX[ind], enemyY[ind] + 1); cout << "    ";
-        gotoxy(enemyX[ind], enemyY[ind] + 2); cout << "    ";
-        gotoxy(enemyX[ind], enemyY[ind] + 3); cout << "    ";
+        gotoxy(laneX[enemy[ind].lane], enemy[ind].y);     cout << "    ";
+        gotoxy(laneX[enemy[ind].lane], enemy[ind].y + 1); cout << "    ";
+        gotoxy(laneX[enemy[ind].lane], enemy[ind].y + 2); cout << "    ";
+        gotoxy(laneX[enemy[ind].lane], enemy[ind].y + 3); cout << "    ";
     }
 }
 
 void resetEnemy(int ind)
 {
     eraseEnemy(ind);
-    enemyY[ind] = 1;
+    enemy[ind].y = 1;
     genEnemy(ind);
 }
 
@@ -108,7 +115,7 @@ void drawCar()
     {
         for (int j = 0; j < 4; j++)
         {
-            gotoxy(j + carPos, i + 22); cout << car[i][j];
+            gotoxy(j + laneX[carLane], i + 22); cout << car[i][j];
         }
     }
 }
@@ -119,7 +126,7 @@ void eraseCar()
     {
         for (int j = 0; j < 4; j++)
         {
-            gotoxy(j + carPos, i + 22); cout << " ";
+            gotoxy(j + laneX[carLane], i + 22); cout << " ";
         }
     }
 }
@@ -128,11 +135,11 @@ int collision()
 {
     for (int ind = 0; ind < 2; ind++)
     {
-        if (enemyFlag[ind])
+        if (enemy[ind].flag)
         {
-            if (enemyY[ind] + 4 >= 23)
+            if (enemy[ind].y + 4 > 22)
             {
-                if (enemyX[ind] + 3 >= carPos and enemyX[ind] <= carPos + 3)
+                if (enemy[ind].lane == carLane)
                 {
                     return 1;
                 }
@@ -144,12 +151,13 @@ int collision()
 
 void gameover()
 {
-    gotoxy(carPos - 1, 21); cout << "      ";
-    gotoxy(carPos - 1, 22); cout << "@[ ]@ ";
-    gotoxy(carPos - 1, 23); cout << " [  ] ";
-    gotoxy(carPos - 1, 24); cout << " [ ] @";
-    gotoxy(carPos - 1, 25); cout << "  @[] ";
-    gotoxy(carPos - 1, 26); cout << "      ";
+    int x = laneX[carLane] - 1;
+    gotoxy(x, 21); cout << "      ";
+    gotoxy(x, 22); cout << "@[ ]@ ";
+    gotoxy(x, 23); cout << " [  ] ";
+    gotoxy(x, 24); cout << " [ ] @";
+    gotoxy(x, 25); cout << "  @[] ";
+    gotoxy(x, 26); cout << "      ";
     Sleep(1000);
 
     system("cls");
@@ -180,12 +188,13 @@ void updateScore()
 // play the game
 void playinitialize()
 {
-    carPos = -1 + WIN_WIDTH / 2;
+    carLane = 5;
     score = 0;
     speed = 50;
-    enemyFlag[0] = true;
-    enemyFlag[1] = false;
-    enemyY[0] = enemyY[1] = 1;
+    enemy[0].flag = true; 
+    enemy[0].y = 1;
+    enemy[1].flag = false; 
+    enemy[1].y = 1;
 
     system("cls");
     drawBorder();
@@ -200,9 +209,9 @@ void playinitialize()
     gotoxy(WIN_WIDTH + 4, 14); cout << "A Key - Left";
     gotoxy(WIN_WIDTH + 4, 15); cout << "D Key - Right";
 
-    gotoxy(18, 5); cout << "Press any key to start...";
+    gotoxy(21, 5); cout << "Press any key to start...";
     _getch();
-    gotoxy(18, 5); cout << "                         ";
+    gotoxy(21, 5); cout << "                         ";
 }
 
 void play()
@@ -215,13 +224,13 @@ void play()
             char ch = _getch();
             if (ch == 'a' or ch == 'A' or ch == 75)
             {
-                if (carPos > 18)
-                    carPos -= 4;
+                if (carLane > 0)
+                    carLane -= 1;
             }
             if (ch == 'd' or ch == 'D' or ch == 77)
             {
-                if (carPos < 50)
-                    carPos += 4;
+                if (carLane < maxLane)
+                    carLane += 1;
             }
             if (ch == 27)
             {
@@ -237,34 +246,29 @@ void play()
             gameover();
             return;
         }
-        Sleep(50);
+        Sleep(speed);
         eraseCar();
         eraseEnemy(0);
         eraseEnemy(1);
 
         // Spawn second enemy
-        if (enemyY[0] == 12)
+        if (enemy[0].y == 12)
         {
-            if (!enemyFlag[1])
-                enemyFlag[1] = true;
+            if (!enemy[1].flag)
+                enemy[1].flag = true;
         }
-        // Move the enemies
-        if (enemyFlag[0])
-            enemyY[0] += 1;
-        if (enemyFlag[1])
-            enemyY[1] += 1;
-        // Reset emy to top of screen
-        if (enemyY[0] > SCREEN_HEIGHT - 4)
+        for (int i=0; i<2; i++)
         {
-            resetEnemy(0);
-            score++;
-            updateScore();
-        }
-        if (enemyY[1] > SCREEN_HEIGHT - 4)
-        {
-            resetEnemy(1);
-            score++;
-            updateScore();
+            // Move the enemy
+            if (enemy[i].flag)
+                enemy[i].y += 1;
+            // Reset enemy to top of screen
+            if (enemy[i].y > SCREEN_HEIGHT - 4)
+            {
+                resetEnemy(i);
+                score++;
+                updateScore();
+            }
         }
     }
 }
