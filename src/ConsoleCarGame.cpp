@@ -125,13 +125,16 @@ void eraseCar()
 
 int collision()
 {
-    if (enemyFlag[0])
+    for (int ind = 0; ind < 2; ind++)
     {
-        if (enemyY[0] + 4 >= 23)
+        if (enemyFlag[ind])
         {
-            if (enemyX[0] + 3 >= carPos and enemyX[0] <= carPos + 3)
+            if (enemyY[ind] + 4 >= 23)
             {
-                return 1;
+                if (enemyX[ind] + 3 >= carPos and enemyX[ind] <= carPos + 3)
+                {
+                    return 1;
+                }
             }
         }
     }
