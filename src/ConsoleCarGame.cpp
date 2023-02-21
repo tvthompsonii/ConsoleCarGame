@@ -29,6 +29,7 @@ char car[4][4] = { ' ', '[', ']', ' ',
 
 int carPos = WIN_WIDTH / 2;
 int score = 0;
+int speed = 50;
 
 void gotoxy(int x, int y)
 {
@@ -168,6 +169,12 @@ void gameover()
 void updateScore()
 {
     gotoxy(WIN_WIDTH + 7, 5); cout << "Score: " << score << endl;
+    if (score % 10 == 0)
+    {
+        speed -= 3;
+        if (speed < 5)
+            speed = 5;
+    }
 }
 
 // play the game
@@ -175,6 +182,7 @@ void playinitialize()
 {
     carPos = -1 + WIN_WIDTH / 2;
     score = 0;
+    speed = 50;
     enemyFlag[0] = true;
     enemyFlag[1] = false;
     enemyY[0] = enemyY[1] = 1;
