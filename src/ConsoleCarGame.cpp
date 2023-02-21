@@ -143,6 +143,14 @@ int collision()
 
 void gameover()
 {
+    gotoxy(carPos - 1, 21); cout << "      ";
+    gotoxy(carPos - 1, 22); cout << "@[ ]@ ";
+    gotoxy(carPos - 1, 23); cout << " [  ] ";
+    gotoxy(carPos - 1, 24); cout << " [ ] @";
+    gotoxy(carPos - 1, 25); cout << "  @[] ";
+    gotoxy(carPos - 1, 26); cout << "      ";
+    Sleep(1000);
+
     system("cls");
     cout << endl;
     cout << "\t\t---------------------------" << endl;
